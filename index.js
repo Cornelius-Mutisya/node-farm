@@ -2,7 +2,9 @@ const fs = require('fs')
 const http = require('http')
 const url = require('url')
 
-const replaceTemplate = require('./modules/replace_template') 
+const slugify = require('slugify')
+
+const replaceTemplate = require('./modules/replace_template')
 
 
 // FILES
@@ -35,7 +37,6 @@ const replaceTemplate = require('./modules/replace_template')
 // SERVER
 
 
-
 const overviewTemplate = fs.readFileSync(`${__dirname}/templates/overview_template.html`, 'utf-8')
 const cardTemplate = fs.readFileSync(`${__dirname}/templates/card_template.html`, 'utf-8')
 const productTemplate = fs.readFileSync(`${__dirname}/templates/product_template.html`, 'utf-8')
@@ -43,7 +44,11 @@ const productTemplate = fs.readFileSync(`${__dirname}/templates/product_template
 
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8')
 
-const dataObj = JSON.parse(data) 
+const dataObj = JSON.parse(data)
+
+const slugs = dataObj.map(el => slugify(el.productName, { lower: true }))
+
+console.log(slugs)
 
 const server = http.createServer((req, res) => {
     // const pathname = req.url
@@ -59,23 +64,23 @@ const server = http.createServer((req, res) => {
         const output = overviewTemplate.replace('{%PRODUCT_CARDS%}', cardsHtml)
         res.end(output)
 
-    // Product page
-    }else if (pathname === '/product') {
+        // Product page
+    } else if (pathname === '/product') {
         const product = dataObj[query.id]
         res.writeHead(200, { 'Content-type': 'text/html' })
         const output = replaceTemplate(productTemplate, product)
         console.log(query);
         res.end(output)
- 
 
-    // API
-    }else if (pathname === '/api') {
+
+        // API
+    } else if (pathname === '/api') {
         res.writeHead(200, { 'Content-type': 'application/json' })
         res.end(data)
-    
-    // Not found
-    }else {
-        res.writeHead(404, {'Content-Type': 'text/html', 'my-own-header': 'hello-world'})
+
+        // Not found
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/html', 'my-own-header': 'hello-world' })
         res.end('<h1>Page not found</h1>')
     }
 })
